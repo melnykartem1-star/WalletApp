@@ -9,6 +9,7 @@ import org.my.walletapp.config.JwtProperties;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -23,10 +24,18 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        return buildToken(userDetails, jwtProperties.getExpiration());
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(userDetails, jwtProperties.getRefreshExpiration());
+    }
+
+    private String buildToken(UserDetails userDetails, long expirationTime) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
+                .expiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(getSignInKey())
                 .compact();
     }
@@ -49,7 +58,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    private javax.crypto.SecretKey getSignInKey() {
+    private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
     }
