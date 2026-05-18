@@ -1,0 +1,82 @@
+package org.my.walletapp.service.user;
+
+import org.springframework.transaction.annotation.Transactional;
+import org.my.walletapp.dto.password.PasswordRequest;
+import org.my.walletapp.dto.user.UserProfileRequest;
+import org.my.walletapp.dto.user.UserProfileResponse;
+import org.my.walletapp.entity.User;
+import org.my.walletapp.exception.EmailAlreadyExistsException;
+import org.my.walletapp.exception.IdenticalPasswordsException;
+import org.my.walletapp.exception.ResourceNotFoundException;
+import org.my.walletapp.exception.WrongPasswordException;
+import org.my.walletapp.mapper.user.UserMapper;
+import org.my.walletapp.repository.user.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserServiceImpl implements UserService{
+
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updateUserProfile(Long userId, UserProfileRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
+
+        if (!user.getEmail().equals(request.email()) && userRepository.existsByEmail(request.email())) {
+            throw new EmailAlreadyExistsException("Email is already taken");
+        }
+
+        user.setName(request.name());
+        user.setEmail(request.email());
+        user.setLocale(request.locale());
+        user.setTimezone(request.timezone());
+
+        User updatedUser = userRepository.save(user);
+        return userMapper.toResponse(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public void changeUserPassword(Long userId, PasswordRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
+
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new WrongPasswordException("The old password you entered is incorrect");
+        }
+
+        if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+            throw new IdenticalPasswordsException("New password cannot be the same as the old one");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+    }
+
+    @Override
+    public UserProfileResponse getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
+        return userMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
+        userRepository.delete(user);
+    }
+}
