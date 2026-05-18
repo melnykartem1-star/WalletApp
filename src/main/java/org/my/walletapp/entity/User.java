@@ -34,7 +34,7 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Merchant> merchants = new ArrayList<>();
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, unique = true)
@@ -62,11 +62,6 @@ public class User implements UserDetails {
         if (this.lastLogin == null) {
             this.lastLogin = now;
         }
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.lastLogin = LocalDateTime.now().withNano(0);
     }
 
     public User(String name, String email, String password, String locale, ZoneId timezone) {
