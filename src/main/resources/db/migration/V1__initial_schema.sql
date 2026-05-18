@@ -1,6 +1,6 @@
 CREATE TABLE users (
     user_id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(60) NOT NULL,
     locale VARCHAR(10) DEFAULT 'en-GB',
