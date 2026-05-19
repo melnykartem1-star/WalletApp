@@ -1,4 +1,4 @@
-package org.my.walletapp.dto.password;
+package org.my.walletapp.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
