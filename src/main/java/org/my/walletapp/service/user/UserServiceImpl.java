@@ -11,7 +11,7 @@ import org.my.walletapp.exception.IdenticalPasswordsException;
 import org.my.walletapp.exception.ResourceNotFoundException;
 import org.my.walletapp.exception.WrongPasswordException;
 import org.my.walletapp.mapper.UserMapper;
-import org.my.walletapp.repository.user.UserRepository;
+import org.my.walletapp.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

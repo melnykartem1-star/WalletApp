@@ -8,8 +8,8 @@ import org.my.walletapp.entity.Account;
 import org.my.walletapp.entity.User;
 import org.my.walletapp.exception.ResourceNotFoundException;
 import org.my.walletapp.mapper.AccountMapper;
-import org.my.walletapp.repository.account.AccountRepository;
-import org.my.walletapp.repository.user.UserRepository;
+import org.my.walletapp.repository.AccountRepository;
+import org.my.walletapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
