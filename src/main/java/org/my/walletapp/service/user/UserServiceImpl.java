@@ -10,7 +10,7 @@ import org.my.walletapp.exception.EmailAlreadyExistsException;
 import org.my.walletapp.exception.IdenticalPasswordsException;
 import org.my.walletapp.exception.ResourceNotFoundException;
 import org.my.walletapp.exception.WrongPasswordException;
-import org.my.walletapp.mapper.user.UserMapper;
+import org.my.walletapp.mapper.UserMapper;
 import org.my.walletapp.repository.user.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,10 +34,7 @@ public class UserServiceImpl implements UserService{
             throw new EmailAlreadyExistsException("Email is already taken");
         }
 
-        user.setName(request.name());
-        user.setEmail(request.email());
-        user.setLocale(request.locale());
-        user.setTimezone(request.timezone());
+        userMapper.partialUpdate(request, user);
 
         return userMapper.toResponse(user);
     }
@@ -61,6 +58,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserProfileResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));

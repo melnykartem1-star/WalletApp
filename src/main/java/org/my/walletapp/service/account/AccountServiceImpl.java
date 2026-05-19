@@ -1,6 +1,6 @@
 package org.my.walletapp.service.account;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.my.walletapp.dto.account.AccountRequest;
 import org.my.walletapp.dto.account.AccountResponse;
@@ -23,6 +23,7 @@ public class AccountServiceImpl implements AccountService{
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<AccountResponse> getAllAccounts(Long userId) {
         return accountRepository.findAllByUserIdAndIsActiveTrue(userId)
                 .stream()
@@ -53,6 +54,7 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AccountResponse getAccountById(Long userId, Long accountId) {
         Account account = accountRepository.findByIdAndUserIdAndIsActiveTrue(accountId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account with id " + accountId + " not found"));

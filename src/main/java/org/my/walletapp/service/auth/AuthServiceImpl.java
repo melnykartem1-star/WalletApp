@@ -33,12 +33,11 @@ public class AuthServiceImpl implements AuthService{
     @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
+        var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = (User) authentication.getPrincipal();
 
         user.setLastLogin(LocalDateTime.now().withNano(0));
 
