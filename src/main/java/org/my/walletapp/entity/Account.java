@@ -40,11 +40,13 @@ public class Account {
     @Column(precision = 19, scale = 4)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(nullable = false)
     private String currency;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private String type;
 
