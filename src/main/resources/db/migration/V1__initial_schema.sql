@@ -15,7 +15,7 @@ CREATE TABLE accounts(
     balance NUMERIC(19, 4) DEFAULT 0.0000,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    currency VARCHAR(255),
+    currency VARCHAR(255) NOT NULL,
     is_active BOOLEAN NOT NULL,
     type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL
