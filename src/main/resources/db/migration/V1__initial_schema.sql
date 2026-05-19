@@ -3,8 +3,8 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(60) NOT NULL,
-    locale VARCHAR(10) DEFAULT 'en-GB',
-    timezone VARCHAR(255),
+    locale VARCHAR(10) NOT NULL DEFAULT 'en-GB',
+    timezone VARCHAR(50),
     created_at TIMESTAMP NOT NULL,
     last_logon TIMESTAMP NOT NULL
 );
@@ -15,8 +15,8 @@ CREATE TABLE accounts(
     balance NUMERIC(19, 4) DEFAULT 0.0000,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    currency VARCHAR(255) NOT NULL,
-    is_active BOOLEAN NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
@@ -28,7 +28,7 @@ CREATE TABLE categories(
     description TEXT,
     type VARCHAR(50) NOT NULL,
     color VARCHAR(255),
-    is_active BOOLEAN NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     icon VARCHAR(255)
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE merchants(
     default_category_id BIGINT REFERENCES categories(category_id) ON DELETE SET NULL,
     user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
     name VARCHAR(255) NOT NULL,
-    is_active BOOLEAN NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     icon VARCHAR(255)
 );
 
