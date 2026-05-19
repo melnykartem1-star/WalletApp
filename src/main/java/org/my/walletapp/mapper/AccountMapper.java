@@ -13,8 +13,6 @@ import org.my.walletapp.entity.Account;
 )
 public interface AccountMapper {
     Account toEntity(AccountRequest request);
-
     AccountResponse toResponse(Account account);
-
     Account partialUpdate(AccountRequest request, @MappingTarget Account account);
 }
