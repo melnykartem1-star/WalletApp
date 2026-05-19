@@ -59,4 +59,12 @@ public class Account {
             this.createdAt = LocalDateTime.now().withNano(0);
         }
     }
+
+    public Account(String title, String description, String currency, String type) {
+        this.title = title;
+        this.description = description;
+        this.balance = balance;
+        this.currency = currency;
+        this.type = type;
+    }
 }
