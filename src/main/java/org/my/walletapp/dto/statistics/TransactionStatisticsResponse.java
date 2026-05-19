@@ -1,7 +1,7 @@
 package org.my.walletapp.dto.statistics;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record TransactionStatisticsResponse(
@@ -9,6 +9,6 @@ public record TransactionStatisticsResponse(
         BigDecimal balance,
         BigDecimal totalIncome,
         BigDecimal totalExpenses,
-        LocalDate startDate,
-        LocalDate endDate
+        LocalDateTime startDate,
+        LocalDateTime endDate
 ) {}

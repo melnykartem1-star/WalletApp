@@ -1,6 +1,7 @@
 package org.my.walletapp.dto.user;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 public record UserProfileResponse(
@@ -9,6 +10,6 @@ public record UserProfileResponse(
         String email,
         String locale,
         ZoneId timezone,
-        LocalDate createdAt,
-        LocalDate lastLogon
+        LocalDateTime createdAt,
+        LocalDateTime lastLogon
 ) {}

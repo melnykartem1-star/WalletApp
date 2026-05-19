@@ -4,7 +4,7 @@ import org.my.walletapp.dto.category.CategoryResponse;
 import org.my.walletapp.enums.TransactionType;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record TransferResponse(
         Long id,
@@ -15,6 +15,6 @@ public record TransferResponse(
         BigDecimal amount,
         String description,
         TransactionType type,
-        LocalDate createdAt
+        LocalDateTime createdAt
 
 ) {}
