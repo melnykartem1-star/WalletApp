@@ -1,6 +1,6 @@
 package org.my.walletapp.service.user;
 
-import org.my.walletapp.dto.password.PasswordRequest;
+import org.my.walletapp.dto.user.PasswordRequest;
 import org.my.walletapp.dto.user.UserProfileRequest;
 import org.my.walletapp.dto.user.UserProfileResponse;
 

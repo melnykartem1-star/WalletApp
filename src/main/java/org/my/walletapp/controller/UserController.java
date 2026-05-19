@@ -1,7 +1,7 @@
 package org.my.walletapp.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.my.walletapp.dto.password.PasswordRequest;
+import org.my.walletapp.dto.user.PasswordRequest;
 import org.my.walletapp.dto.user.UserProfileRequest;
 import org.my.walletapp.dto.user.UserProfileResponse;
 import org.my.walletapp.entity.User;
