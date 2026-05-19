@@ -11,7 +11,7 @@ CREATE TABLE users (
 
 CREATE TABLE accounts(
     account_id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(user_id) NOT NULL,
+    user_id BIGINT REFERENCES users(user_id) NOT NULL ON DELETE CASCADE,
     balance NUMERIC(19, 4) DEFAULT 0.0000,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE accounts(
 
 CREATE TABLE categories(
     category_id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(user_id) NOT NULL,
+    user_id BIGINT REFERENCES users(user_id) NOT NULL ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     type VARCHAR(50) NOT NULL,
@@ -34,8 +34,8 @@ CREATE TABLE categories(
 
 CREATE TABLE merchants(
     merchant_id BIGSERIAL PRIMARY KEY,
-    default_category_id BIGINT REFERENCES categories(category_id),
-    user_id BIGINT REFERENCES users(user_id) NOT NULL,
+    default_category_id BIGINT REFERENCES categories(category_id) ON DELETE SET NULL,
+    user_id BIGINT REFERENCES users(user_id) NOT NULL ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     is_active BOOLEAN NOT NULL,
     icon VARCHAR(255)
@@ -45,8 +45,8 @@ CREATE TABLE transactions(
     transaction_id BIGSERIAL PRIMARY KEY,
     account_id BIGINT REFERENCES accounts(account_id) NOT NULL,
     target_account_id BIGINT REFERENCES accounts(account_id),
-    category_id BIGINT REFERENCES categories(category_id),
-    merchant_id BIGINT REFERENCES merchants(merchant_id),
+    category_id BIGINT REFERENCES categories(category_id) ON DELETE SET NULL,
+    merchant_id BIGINT REFERENCES merchants(merchant_id) ON DELETE SET NULL,
     title VARCHAR(255) NOT NULL,
     amount NUMERIC(19, 4) DEFAULT 0.0000,
     description TEXT,
