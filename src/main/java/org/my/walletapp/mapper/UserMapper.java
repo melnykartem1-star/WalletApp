@@ -1,4 +1,4 @@
-package org.my.walletapp.mapper.user;
+package org.my.walletapp.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
