@@ -2,6 +2,7 @@ package org.my.walletapp.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.my.walletapp.dto.transaction.TransactionRequest;
 import org.my.walletapp.dto.transaction.TransactionResponse;
@@ -26,5 +27,10 @@ public interface TransactionMapper {
     @Mapping(source = "account.id", target = "accountId")
     @Mapping(source = "targetAccount.id", target = "targetAccountId")
     TransactionResponse toResponse(Transaction transaction);
+
+    @Mapping(source = "accountId", target = "account.id")
+    @Mapping(source = "categoryId", target = "category.id")
+    @Mapping(source = "merchantId", target = "merchant.id")
+    Transaction partialUpdate(TransactionRequest request, @MappingTarget Transaction transaction);
 
 }
