@@ -11,6 +11,6 @@ import java.util.Optional;
 public interface MerchantRepository extends JpaRepository<Merchant, Long> {
 
     List<Merchant> findAllByUserIdAndIsActiveTrue(Long userId);
-    Optional<Merchant> findByIdAndUserId(Long merchantId, Long userId);
+    Optional<Merchant> findByIdAndUserIdAndIsActiveTrue(Long merchantId, Long userId);
 
 }

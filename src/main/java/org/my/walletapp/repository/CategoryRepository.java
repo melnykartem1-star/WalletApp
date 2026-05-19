@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Page<Category> findAllByUserIdAndIsActiveTrue(Long userId, Pageable pageable);
-    Optional<Category> findByIdAndUserId(Long categoryId, Long userId);
+    Optional<Category> findByIdAndUserIdAndIsActiveTrue(Long categoryId, Long userId);
 
 }
