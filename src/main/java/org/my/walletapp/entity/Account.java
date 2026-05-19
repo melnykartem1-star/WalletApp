@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.my.walletapp.enums.AccountType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,10 +28,10 @@ public class Account {
     private User user;
 
     @OneToMany(mappedBy = "targetAccount", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Transaction> inboundTransfers = new ArrayList<>();;
+    private List<Transaction> inboundTransfers = new ArrayList<>();
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Transaction> outboundTransactions = new ArrayList<>();;
+    private List<Transaction> outboundTransactions = new ArrayList<>();
 
     @Column(nullable = false)
     private String title;
@@ -48,7 +49,7 @@ public class Account {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String type;
+    private AccountType type;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -58,13 +59,5 @@ public class Account {
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now().withNano(0);
         }
-    }
-
-    public Account(String title, String description, String currency, String type) {
-        this.title = title;
-        this.description = description;
-        this.balance = balance;
-        this.currency = currency;
-        this.type = type;
     }
 }
