@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaSpecificationExecutor<Transaction>, JpaRepository<Transaction, Long> {
@@ -21,7 +22,7 @@ public interface TransactionRepository extends JpaSpecificationExecutor<Transact
     @Query("""
         SELECT c.title AS categoryName, SUM(t.amount) AS amount, c.type AS type
         FROM Transaction t
-        JOIN t.category c
+        LEFT JOIN t.category c
         JOIN t.account a
         WHERE a.user.id = :userId
           AND (:categoryId IS NULL OR c.id = :categoryId)
@@ -36,7 +37,8 @@ public interface TransactionRepository extends JpaSpecificationExecutor<Transact
             @Param("endDate") LocalDateTime endDate
     );
 
-    @Override
+    Optional<Transaction> findByIdAndAccount_UserId(Long id, Long userId);
+
     @EntityGraph(attributePaths = {"category", "merchant", "account", "targetAccount"})
     Page<Transaction> findAll(Specification<Transaction> spec, Pageable pageable);
 
