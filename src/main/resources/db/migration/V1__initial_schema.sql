@@ -43,12 +43,12 @@ CREATE TABLE merchants(
 
 CREATE TABLE transactions(
     transaction_id BIGSERIAL PRIMARY KEY,
-    account_id BIGINT REFERENCES accounts(account_id) NOT NULL,
-    target_account_id BIGINT REFERENCES accounts(account_id),
+    account_id BIGINT REFERENCES accounts(account_id) ON DELETE CASCADE NOT NULL,
+    target_account_id BIGINT REFERENCES accounts(account_id) ON DELETE CASCADE,
     category_id BIGINT REFERENCES categories(category_id) ON DELETE SET NULL,
     merchant_id BIGINT REFERENCES merchants(merchant_id) ON DELETE SET NULL,
     title VARCHAR(255) NOT NULL,
-    amount NUMERIC(19, 4) DEFAULT 0.0000,
+    amount NUMERIC(19, 4) DEFAULT 0.0000 NOT NULL,
     description TEXT,
     type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL
