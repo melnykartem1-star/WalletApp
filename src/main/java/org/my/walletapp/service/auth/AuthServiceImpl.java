@@ -41,7 +41,6 @@ public class AuthServiceImpl implements AuthService{
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         user.setLastLogin(LocalDateTime.now().withNano(0));
-        userRepository.save(user);
 
         return new AuthResponse(
                 user.getId(),
@@ -78,6 +77,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RefreshTokenResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.refreshToken();
         String userEmail = jwtService.extractUsername(refreshToken);

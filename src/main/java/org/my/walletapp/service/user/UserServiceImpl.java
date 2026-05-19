@@ -39,8 +39,7 @@ public class UserServiceImpl implements UserService{
         user.setLocale(request.locale());
         user.setTimezone(request.timezone());
 
-        User updatedUser = userRepository.save(user);
-        return userMapper.toResponse(updatedUser);
+        return userMapper.toResponse(user);
     }
 
     @Override
