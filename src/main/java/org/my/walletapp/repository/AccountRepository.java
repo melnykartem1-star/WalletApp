@@ -1,4 +1,4 @@
-package org.my.walletapp.repository.account;
+package org.my.walletapp.repository;
 
 import org.my.walletapp.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
