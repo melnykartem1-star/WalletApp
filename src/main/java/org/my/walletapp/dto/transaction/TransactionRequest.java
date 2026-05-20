@@ -1,9 +1,7 @@
 package org.my.walletapp.dto.transaction;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
 import org.my.walletapp.enums.TransactionType;
 
 import java.math.BigDecimal;
@@ -31,4 +29,10 @@ public record TransactionRequest(
         @Size(max = 10_000, message = "Description is too long")
         String description
 
-) {}
+) {
+        @JsonIgnore
+        @AssertTrue(message = "For transfers, use the /transfers endpoint. Allowed types: WITHDRAW, DEPOSIT")
+        public boolean isValidTransactionType() {
+                return type == TransactionType.WITHDRAW || type == TransactionType.DEPOSIT;
+        }
+}

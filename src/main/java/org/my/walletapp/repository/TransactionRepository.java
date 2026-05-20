@@ -1,6 +1,6 @@
 package org.my.walletapp.repository;
 
-import org.my.walletapp.dto.transaction.TransactionStatisticProjection;
+import org.my.walletapp.util.TransactionStatisticProjection;
 import org.my.walletapp.entity.Transaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,16 +20,16 @@ import java.util.Optional;
 public interface TransactionRepository extends JpaSpecificationExecutor<Transaction>, JpaRepository<Transaction, Long> {
 
     @Query("""
-        SELECT c.title AS categoryName, SUM(t.amount) AS amount, c.type AS type
+        SELECT c.title AS categoryName, c.color AS color, SUM(t.amount) AS amount, c.type AS type
         FROM Transaction t
         LEFT JOIN t.category c
         JOIN t.account a
         WHERE a.user.id = :userId
-          AND t.type != org.my.walletapp.enums.TransactionType.TRANSFER -- Відсікаємо трансфери
+          AND t.type != org.my.walletapp.enums.TransactionType.TRANSFER 
           AND (:categoryId IS NULL OR c.id = :categoryId)
-          AND t.createdAt >= :startDate
-          AND t.createdAt <= :endDate
-        GROUP BY c.id, c.title, c.type
+          AND (CAST(:startDate AS timestamp) IS NULL OR t.createdAt >= :startDate)
+          AND (CAST(:endDate AS timestamp) IS NULL OR t.createdAt <= :endDate)
+        GROUP BY c.id, c.title, c.color, c.type
     """)
     List<TransactionStatisticProjection> getStatisticsByPeriod(
             @Param("categoryId") Long categoryId,
