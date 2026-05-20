@@ -32,7 +32,7 @@ public class Merchant {
     private List<Transaction> transactions = new ArrayList<>();
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean isActive = true;;
 
     @Column(nullable = false)
     private String name;
