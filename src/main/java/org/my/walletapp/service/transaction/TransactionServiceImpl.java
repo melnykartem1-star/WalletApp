@@ -13,6 +13,7 @@ import org.my.walletapp.entity.Merchant;
 import org.my.walletapp.entity.Transaction;
 import org.my.walletapp.enums.CategoryType;
 import org.my.walletapp.enums.TransactionType;
+import org.my.walletapp.exception.InsufficientFundsException;
 import org.my.walletapp.exception.ResourceNotFoundException;
 import org.my.walletapp.mapper.TransactionMapper;
 import org.my.walletapp.mapper.TransferMapper;
@@ -125,6 +126,11 @@ public class TransactionServiceImpl implements TransactionService{
                 .orElseThrow(() -> new ResourceNotFoundException("Target account with id " + request.targetAccountId() + " not found"));
 
         Transaction transaction = transferMapper.toEntity(request);
+
+        if (account.getBalance().compareTo(transaction.getAmount()) < 0) {
+            throw new InsufficientFundsException("Insufficient funds: source account balance cannot be negative.");
+        }
+
         transaction.setAccount(account);
         transaction.setTargetAccount(targetAccount);
         transaction.setType(TransactionType.TRANSFER);
@@ -159,6 +165,9 @@ public class TransactionServiceImpl implements TransactionService{
         }
 
         if (transaction.getType() == TransactionType.WITHDRAW) {
+            if (account.getBalance().compareTo(transaction.getAmount()) < 0) {
+                throw new InsufficientFundsException("Insufficient funds: account balance cannot be negative.");
+            }
             account.setBalance(account.getBalance().subtract(transaction.getAmount()));
         } else if (transaction.getType() == TransactionType.DEPOSIT) {
             account.setBalance(account.getBalance().add(transaction.getAmount()));
