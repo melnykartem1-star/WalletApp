@@ -41,7 +41,7 @@ public class Category {
     private CategoryType type;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean isActive = true;;
 
     private String color;
 
