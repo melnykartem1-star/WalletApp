@@ -40,6 +40,7 @@ public class AuthServiceImpl implements AuthService{
         User user = (User) authentication.getPrincipal();
 
         user.setLastLogin(LocalDateTime.now().withNano(0));
+        userRepository.save(user);
 
         return new AuthResponse(
                 user.getId(),
