@@ -1,4 +1,4 @@
-package org.my.walletapp.aop;
+package org.my.walletapp.aspect;
 
 import org.my.walletapp.dto.exception.ExceptionResponse;
 import org.my.walletapp.exception.*;
