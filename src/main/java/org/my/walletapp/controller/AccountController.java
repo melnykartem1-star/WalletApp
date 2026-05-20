@@ -41,7 +41,7 @@ public class AccountController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<AccountResponse> updateAccount(
+    public ResponseEntity<AccountResponse> updateAccountById(
             @AuthenticationPrincipal User user,
             @PathVariable(name = "id") Long accountId,
             @Valid @RequestBody AccountRequest request) {
@@ -49,7 +49,7 @@ public class AccountController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccount(
+    public ResponseEntity<Void> deleteAccountById(
             @AuthenticationPrincipal User user,
             @PathVariable(name = "id") Long accountId) {
         accountService.deleteAccountById(user.getId(), accountId);

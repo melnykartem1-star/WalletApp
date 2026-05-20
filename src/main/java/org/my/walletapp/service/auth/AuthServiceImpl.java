@@ -10,7 +10,7 @@ import org.my.walletapp.entity.User;
 import org.my.walletapp.exception.EmailAlreadyExistsException;
 import org.my.walletapp.exception.InvalidRefreshToken;
 import org.my.walletapp.exception.ResourceNotFoundException;
-import org.my.walletapp.repository.user.UserRepository;
+import org.my.walletapp.repository.UserRepository;
 import org.my.walletapp.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +40,7 @@ public class AuthServiceImpl implements AuthService{
         User user = (User) authentication.getPrincipal();
 
         user.setLastLogin(LocalDateTime.now().withNano(0));
+        userRepository.save(user);
 
         return new AuthResponse(
                 user.getId(),
