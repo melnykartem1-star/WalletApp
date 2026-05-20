@@ -18,7 +18,7 @@ public record UserProfileRequest(
 
         @Pattern(
                 regexp = "^[a-z]{2}([-_][A-Z]{2})?$",
-                message = "Invalid locale format (expected 'uk', 'uk-UA', or 'uk_UA')"
+                message = "Invalid locale format (expected format like 'uk', 'uk-UA', 'en-US')"
         )
         String locale,
 

@@ -1,16 +1,15 @@
 package org.my.walletapp.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.my.walletapp.dto.user.PasswordRequest;
-import org.my.walletapp.dto.user.UserProfileRequest;
+import org.my.walletapp.dto.user.UserProfilePatchRequest;
 import org.my.walletapp.dto.user.UserProfileResponse;
 import org.my.walletapp.entity.User;
 import org.my.walletapp.service.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -27,7 +26,7 @@ public class UserController {
     @PatchMapping("/profile")
     public ResponseEntity<UserProfileResponse> updateUserProfileByJwt(
             @AuthenticationPrincipal User user,
-            @Valid @RequestBody UserProfileRequest request) {
+            @Valid @RequestBody UserProfilePatchRequest request) {
         return ResponseEntity.ok(userService.updateUserProfile(user.getId(), request));
     }
 

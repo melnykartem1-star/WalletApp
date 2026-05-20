@@ -1,9 +1,8 @@
 package org.my.walletapp.service.user;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 import org.my.walletapp.dto.user.PasswordRequest;
-import org.my.walletapp.dto.user.UserProfileRequest;
+import org.my.walletapp.dto.user.UserProfilePatchRequest;
 import org.my.walletapp.dto.user.UserProfileResponse;
 import org.my.walletapp.entity.User;
 import org.my.walletapp.exception.EmailAlreadyExistsException;
@@ -14,6 +13,7 @@ import org.my.walletapp.mapper.UserMapper;
 import org.my.walletapp.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,13 +25,14 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional
-    public UserProfileResponse updateUserProfile(Long userId, UserProfileRequest request) {
-
+    public UserProfileResponse updateUserProfile(Long userId, UserProfilePatchRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " not found"));
 
-        if (!user.getEmail().equals(request.email()) && userRepository.existsByEmail(request.email())) {
-            throw new EmailAlreadyExistsException("Email is already taken");
+        if (request.email() != null && !user.getEmail().equals(request.email())) {
+            if (userRepository.existsByEmail(request.email())) {
+                throw new EmailAlreadyExistsException("Email is already taken");
+            }
         }
 
         userMapper.partialUpdate(request, user);
