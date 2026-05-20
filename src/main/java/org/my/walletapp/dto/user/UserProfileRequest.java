@@ -2,8 +2,6 @@ package org.my.walletapp.dto.user;
 
 import jakarta.validation.constraints.*;
 
-import java.time.ZoneId;
-
 public record UserProfileRequest(
 
         @NotBlank(message = "Name cannot be empty")
@@ -25,5 +23,5 @@ public record UserProfileRequest(
         String locale,
 
         @NotNull(message = "Timezone cannot be null")
-        ZoneId timezone
+        String timezone
 ) {}
