@@ -12,7 +12,7 @@ CREATE TABLE users (
 CREATE TABLE accounts(
     account_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
-    balance NUMERIC(19, 4) DEFAULT 0.0000,
+    balance NUMERIC(19, 4) DEFAULT 0.0000 CHECK (balance >= 0),
     title VARCHAR(255) NOT NULL,
     description TEXT,
     currency VARCHAR(3) NOT NULL,
