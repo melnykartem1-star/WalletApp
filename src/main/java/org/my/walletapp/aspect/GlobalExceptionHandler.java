@@ -5,6 +5,7 @@ import org.my.walletapp.exception.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,7 +27,6 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", errors.toString());
     }
 
@@ -50,31 +50,36 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, "Forbidden", ex.getMessage());
     }
 
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ExceptionResponse> handleInsufficientFunds(InsufficientFundsException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ExceptionResponse> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflict", "The account was modified by another transaction. Please try again.");
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ExceptionResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         String message = "Database error or constraint violation";
-
-        ex.getMostSpecificCause();
-        String dbError = ex.getMostSpecificCause().getMessage();
-        if (dbError.contains("balance")) {
-            message = "Insufficient funds: account balance cannot be negative.";
-        } else if (dbError.contains("users_email_key")) {
-            message = "This email is already in use.";
+        if (ex.getMostSpecificCause() != null) {
+            String dbError = ex.getMostSpecificCause().getMessage();
+            if (dbError.contains("users_email_key")) {
+                message = "This email is already in use.";
+            }
         }
-
         return buildResponse(HttpStatus.BAD_REQUEST, "Data Integrity Violation", message);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ExceptionResponse> handleBadCredentialsException(BadCredentialsException ex) {
-
         ExceptionResponse body = new ExceptionResponse(
                 LocalDateTime.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 "Unauthorized",
                 "Wrong password or email"
         );
-
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 

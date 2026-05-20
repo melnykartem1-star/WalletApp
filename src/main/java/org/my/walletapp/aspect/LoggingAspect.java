@@ -15,7 +15,12 @@ import java.util.Arrays;
 public class LoggingAspect {
 
 
-    @Pointcut("within(org.my.walletapp.controller..*) || within(org.my.walletapp.service..*)")
+
+    @Pointcut("(within(org.my.walletapp.controller..*) || within(org.my.walletapp.service..*)) " +
+            "&& !within(org.my.walletapp.controller.AuthController) " +
+            "&& !within(org.my.walletapp.service.auth..*) " +
+            "&& !execution(* org.my.walletapp.controller.UserController.changeUserPasswordByJwt(..)) " +
+            "&& !execution(* org.my.walletapp.service.user.UserServiceImpl.changeUserPassword(..))")
     public void applicationPackagePointcut() {
     }
 
