@@ -1,0 +1,81 @@
+package org.my.walletapp.aop;
+
+import org.my.walletapp.dto.exception.ExceptionResponse;
+import org.my.walletapp.exception.*;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ExceptionResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", errors.toString());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ExceptionResponse> handleEmailExists(EmailAlreadyExistsException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage());
+    }
+
+    @ExceptionHandler({WrongPasswordException.class, IdenticalPasswordsException.class, IllegalArgumentException.class})
+    public ResponseEntity<ExceptionResponse> handleBadRequests(RuntimeException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRefreshToken.class)
+    public ResponseEntity<ExceptionResponse> handleInvalidToken(InvalidRefreshToken ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Forbidden", ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ExceptionResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String message = "Database error or constraint violation";
+
+        ex.getMostSpecificCause();
+        String dbError = ex.getMostSpecificCause().getMessage();
+        if (dbError.contains("balance")) {
+            message = "Insufficient funds: account balance cannot be negative.";
+        } else if (dbError.contains("users_email_key")) {
+            message = "This email is already in use.";
+        }
+
+        return buildResponse(HttpStatus.BAD_REQUEST, "Data Integrity Violation", message);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionResponse> handleAllOtherExceptions(Exception ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "An unexpected error occurred. Please try again later.");
+    }
+
+    private ResponseEntity<ExceptionResponse> buildResponse(HttpStatus status, String error, String message) {
+        ExceptionResponse response = new ExceptionResponse(
+                LocalDateTime.now(),
+                status.value(),
+                error,
+                message
+        );
+        return ResponseEntity.status(status).body(response);
+    }
+}
