@@ -14,10 +14,9 @@ import org.my.walletapp.entity.Transaction;
 )
 public interface TransactionMapper {
 
-    @Mapping(source = "accountId", target = "account.id")
-    @Mapping(source = "categoryId", target = "category.id")
-    @Mapping(source = "merchantId", target = "merchant.id")
-
+    @Mapping(target = "account", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "merchant", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "targetAccount", ignore = true)
