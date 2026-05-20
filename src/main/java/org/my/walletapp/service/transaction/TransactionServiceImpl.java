@@ -197,8 +197,13 @@ public class TransactionServiceImpl implements TransactionService{
 
         if (transaction.getType() == TransactionType.WITHDRAW) {
             account.setBalance(account.getBalance().add(transaction.getAmount()));
+
         } else if (transaction.getType() == TransactionType.DEPOSIT) {
+            if (account.getBalance().compareTo(transaction.getAmount()) < 0) {
+                throw new InsufficientFundsException("Cannot delete deposit: account balance would become negative.");
+            }
             account.setBalance(account.getBalance().subtract(transaction.getAmount()));
+
         } else if (transaction.getType() == TransactionType.TRANSFER) {
             account.setBalance(account.getBalance().add(transaction.getAmount()));
             targetAccount.setBalance(targetAccount.getBalance().subtract(transaction.getAmount()));
