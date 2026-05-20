@@ -25,6 +25,7 @@ public interface TransactionRepository extends JpaSpecificationExecutor<Transact
         LEFT JOIN t.category c
         JOIN t.account a
         WHERE a.user.id = :userId
+          AND t.type != org.my.walletapp.enums.TransactionType.TRANSFER -- Відсікаємо трансфери
           AND (:categoryId IS NULL OR c.id = :categoryId)
           AND t.createdAt >= :startDate
           AND t.createdAt <= :endDate
