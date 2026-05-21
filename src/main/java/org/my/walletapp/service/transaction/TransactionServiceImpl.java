@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,8 @@ public class TransactionServiceImpl implements TransactionService{
     private final AccountRepository accountRepository;
     private final CategoryRepository categoryRepository;
     private final MerchantRepository merchantRepository;
+
+    private final ExchangeRateService exchangeRateService;
 
     private final TransactionMapper transactionMapper;
     private final TransferMapper transferMapper;
@@ -127,16 +130,25 @@ public class TransactionServiceImpl implements TransactionService{
             throw new InsufficientFundsException("Insufficient funds: source account balance cannot be negative.");
         }
 
+        BigDecimal amountToDeduct = transaction.getAmount();
+        BigDecimal amountToAdd = amountToDeduct;
+
+        if (!account.getCurrency().equalsIgnoreCase(targetAccount.getCurrency())) {
+            BigDecimal exchangeRate = exchangeRateService.getRate(account.getCurrency(), targetAccount.getCurrency());
+            amountToAdd = amountToDeduct.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
+
+        }
+
+        account.setBalance(account.getBalance().subtract(amountToDeduct));
+        targetAccount.setBalance(targetAccount.getBalance().add(amountToAdd));
+
         transaction.setAccount(account);
         transaction.setTargetAccount(targetAccount);
         transaction.setType(TransactionType.TRANSFER);
 
-        account.setBalance(account.getBalance().subtract(transaction.getAmount()));
-        targetAccount.setBalance(targetAccount.getBalance().add(transaction.getAmount()));
-
         transactionRepository.save(transaction);
-        return transferMapper.toResponse(transaction);
 
+        return transferMapper.toResponse(transaction);
     }
 
     @Override

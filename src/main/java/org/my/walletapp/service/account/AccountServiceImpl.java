@@ -1,6 +1,5 @@
 package org.my.walletapp.service.account;
 
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.my.walletapp.dto.account.AccountRequest;
 import org.my.walletapp.dto.account.AccountResponse;
@@ -10,8 +9,12 @@ import org.my.walletapp.exception.ResourceNotFoundException;
 import org.my.walletapp.mapper.AccountMapper;
 import org.my.walletapp.repository.AccountRepository;
 import org.my.walletapp.repository.UserRepository;
+import org.my.walletapp.service.transaction.ExchangeRateService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -21,6 +24,8 @@ public class AccountServiceImpl implements AccountService{
     private final AccountRepository accountRepository;
     private final AccountMapper accountMapper;
     private final UserRepository userRepository;
+
+    private final ExchangeRateService exchangeRateService;
 
     @Override
     @Transactional(readOnly = true)
@@ -49,7 +54,20 @@ public class AccountServiceImpl implements AccountService{
         Account account = accountRepository.findByIdAndUserIdAndIsActiveTrue(accountId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account with id " + accountId + " not found"));
 
+        String oldCurrency = account.getCurrency();
+        String newCurrency = request.currency();
+
+        if (newCurrency != null && !newCurrency.equalsIgnoreCase(oldCurrency)) {
+            if (account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal exchangeRate = exchangeRateService.getRate(oldCurrency, newCurrency);
+                BigDecimal newBalance = account.getBalance().multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
+                account.setBalance(newBalance);
+            }
+            account.setCurrency(newCurrency);
+        }
+
         accountMapper.partialUpdate(request, account);
+
         account.setDescription(request.description());
 
         return accountMapper.toResponse(account);

@@ -8,6 +8,7 @@ import org.my.walletapp.dto.transaction.TransferResponse;
 import org.my.walletapp.enums.TransactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 

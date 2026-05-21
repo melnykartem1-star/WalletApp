@@ -24,6 +24,7 @@ public interface TransactionMapper {
 
     @Mapping(source = "account.id", target = "accountId")
     @Mapping(source = "targetAccount.id", target = "targetAccountId")
+    @Mapping(source = "account.currency", target = "currency")
     TransactionResponse toResponse(Transaction transaction);
 
 }

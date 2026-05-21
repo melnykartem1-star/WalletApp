@@ -17,5 +17,6 @@ public record TransactionResponse(
         BigDecimal amount,
         String description,
         TransactionType type,
+        String currency,
         LocalDateTime createdAt
 ) {}
