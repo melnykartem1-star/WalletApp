@@ -75,13 +75,13 @@ class TransactionControllerTest {
 
         txResponse = new TransactionResponse(
                 txId, null, 10L, null, null, "Test",
-                BigDecimal.valueOf(100), null, TransactionType.WITHDRAW, LocalDateTime.now()
+                BigDecimal.valueOf(100), null, TransactionType.WITHDRAW, "UAH", LocalDateTime.now()
         );
     }
 
     @Test
     void getAllTransactions_ShouldReturn200AndPage() throws Exception {
-        when(transactionService.getAllTransactions(any(Pageable.class), any(), eq(userId), any(), any(), any()))
+        when(transactionService.getAllTransactions(any(Pageable.class), any(), eq(userId), any(), any(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(txResponse)));
 
         mockMvc.perform(get("/api/v1/transactions")
@@ -144,7 +144,7 @@ class TransactionControllerTest {
         when(transactionService.createTransfer(eq(userId), any(TransferRequest.class)))
                 .thenReturn(transferResponse);
 
-        mockMvc.perform(post("/api/v1/transactions/transfer")
+        mockMvc.perform(post("/api/v1/transactions/transfers")
                         .with(user(testUser))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)

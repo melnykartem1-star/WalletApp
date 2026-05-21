@@ -17,6 +17,7 @@ import org.my.walletapp.mapper.AccountMapper;
 import org.my.walletapp.repository.AccountRepository;
 import org.my.walletapp.repository.UserRepository;
 import org.my.walletapp.service.account.AccountServiceImpl;
+import org.my.walletapp.service.transaction.ExchangeRateService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,6 +37,9 @@ class AccountServiceTest {
     private AccountMapper accountMapper;
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ExchangeRateService exchangeRateService;
 
     @InjectMocks
     private AccountServiceImpl accountService;
@@ -88,6 +92,7 @@ class AccountServiceTest {
         @Test
         void createAccount_Success() {
             AccountRequest request = new AccountRequest("New Card", "Desc", "USD", AccountType.CARD);
+
             Account mappedAccount = new Account();
             mappedAccount.setTitle("New Card");
             AccountResponse mockResponse = new AccountResponse(11L, "New Card", BigDecimal.ZERO, "Desc", "USD", true, AccountType.CARD, LocalDateTime.now());
@@ -112,6 +117,7 @@ class AccountServiceTest {
         @Test
         void updateAccountById_Success() {
             AccountRequest request = new AccountRequest("Updated Card", null, null, null);
+
             AccountResponse mockResponse = new AccountResponse(accountId, "Updated Card", BigDecimal.valueOf(1000), null, "UAH", true, AccountType.CARD, LocalDateTime.now());
 
             when(accountRepository.findByIdAndUserIdAndIsActiveTrue(accountId, userId)).thenReturn(Optional.of(testAccount));

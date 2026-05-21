@@ -15,7 +15,6 @@ import org.my.walletapp.dto.transaction.TransferResponse;
 import org.my.walletapp.entity.Account;
 import org.my.walletapp.entity.Transaction;
 import org.my.walletapp.entity.User;
-import org.my.walletapp.enums.CategoryType;
 import org.my.walletapp.enums.TransactionType;
 import org.my.walletapp.exception.InsufficientFundsException;
 import org.my.walletapp.mapper.TransactionMapper;
@@ -24,6 +23,7 @@ import org.my.walletapp.repository.AccountRepository;
 import org.my.walletapp.repository.CategoryRepository;
 import org.my.walletapp.repository.MerchantRepository;
 import org.my.walletapp.repository.TransactionRepository;
+import org.my.walletapp.service.transaction.ExchangeRateService;
 import org.my.walletapp.service.transaction.TransactionServiceImpl;
 import org.my.walletapp.util.TransactionStatisticProjection;
 import org.springframework.data.domain.Page;
@@ -51,6 +51,8 @@ class TransactionServiceTest {
     @Mock private TransactionMapper transactionMapper;
     @Mock private TransferMapper transferMapper;
 
+    @Mock private ExchangeRateService exchangeRateService;
+
     @InjectMocks private TransactionServiceImpl transactionService;
 
     private User testUser;
@@ -71,12 +73,14 @@ class TransactionServiceTest {
         sourceAccount = new Account();
         sourceAccount.setId(10L);
         sourceAccount.setBalance(BigDecimal.valueOf(1000));
+        sourceAccount.setCurrency("UAH");
         sourceAccount.setActive(true);
         sourceAccount.setUser(testUser);
 
         targetAccount = new Account();
         targetAccount.setId(20L);
         targetAccount.setBalance(BigDecimal.valueOf(500));
+        targetAccount.setCurrency("UAH");
         targetAccount.setActive(true);
         targetAccount.setUser(testUser);
 
@@ -93,28 +97,34 @@ class TransactionServiceTest {
         @Test
         void getTransactionStatistics_ShouldIncludeIncome() {
             TransactionStatisticProjection incomeProj = mock(TransactionStatisticProjection.class);
-            when(incomeProj.getType()).thenReturn(CategoryType.INCOME);
-            when(incomeProj.getAmount()).thenReturn(BigDecimal.valueOf(500));
-            when(incomeProj.getCategoryName()).thenReturn("Salary");
 
-            when(transactionRepository.getStatisticsByPeriod(any(), eq(userId), any(), any())).thenReturn(List.of(incomeProj));
-            when(accountRepository.findAllByUserIdAndIsActiveTrue(userId)).thenReturn(List.of(sourceAccount));
+            when(incomeProj.getType()).thenReturn(TransactionType.DEPOSIT);
+            when(incomeProj.getAmount()).thenReturn(BigDecimal.valueOf(500));
+            when(incomeProj.getCurrency()).thenReturn("UAH"); // Важливо додати, бо сервіс тепер бере валюту
+
+            when(exchangeRateService.getRate(any(), eq("UAH"))).thenReturn(BigDecimal.ONE);
+
+            when(transactionRepository.getStatisticsByPeriod(any(), eq(userId), any(), any()))
+                    .thenReturn(List.of(incomeProj));
+
+            when(transactionRepository.getBalanceByCurrency(userId))
+                    .thenReturn(java.util.Collections.singletonList(new Object[]{"UAH", BigDecimal.valueOf(1000)}));
 
             TransactionStatisticsResponse result = transactionService.getTransactionStatistics(userId, null, null, null);
 
-            assertEquals(BigDecimal.valueOf(500), result.totalIncome());
+            assertEquals(BigDecimal.valueOf(500).setScale(2), result.totalIncome());
         }
 
         @Test
         void getAllTransactions_Success() {
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Transaction> transactionPage = new PageImpl<>(List.of(testTransaction));
-            TransactionResponse mockResponse = new TransactionResponse(transactionId, null, 10L, null, null, "Test", BigDecimal.valueOf(100), null, TransactionType.WITHDRAW, LocalDateTime.now());
 
+            Page<Transaction> transactionPage = new PageImpl<>(List.of(testTransaction));
+            TransactionResponse mockResponse = new TransactionResponse(transactionId, null, 10L, null, null, "Test", BigDecimal.valueOf(100), null, TransactionType.WITHDRAW, "UAH", LocalDateTime.now());
             when(transactionRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(transactionPage);
             when(transactionMapper.toResponse(testTransaction)).thenReturn(mockResponse);
 
-            Page<TransactionResponse> result = transactionService.getAllTransactions(pageable, null, userId, null, null, null);
+            Page<TransactionResponse> result = transactionService.getAllTransactions(pageable, null, userId, null, null, null, null);
 
             assertNotNull(result);
             assertEquals(1, result.getContent().size());
@@ -122,41 +132,54 @@ class TransactionServiceTest {
 
         @Test
         void getTransactionStatistics_Success() {
+
             TransactionStatisticProjection proj = mock(TransactionStatisticProjection.class);
             when(proj.getCategoryName()).thenReturn("Food");
             when(proj.getAmount()).thenReturn(BigDecimal.valueOf(200));
-            when(proj.getType()).thenReturn(CategoryType.EXPENSE);
+            when(proj.getType()).thenReturn(TransactionType.WITHDRAW);
+            when(proj.getCurrency()).thenReturn("UAH");
+            when(proj.getColor()).thenReturn("#FF0000");
 
-            when(transactionRepository.getStatisticsByPeriod(null, userId, null, null)).thenReturn(List.of(proj));
-            when(accountRepository.findAllByUserIdAndIsActiveTrue(userId)).thenReturn(List.of(sourceAccount, targetAccount));
+            when(transactionRepository.getStatisticsByPeriod(any(), eq(userId), any(), any()))
+                    .thenReturn(List.of(proj));
+
+            when(transactionRepository.getBalanceByCurrency(userId))
+                    .thenReturn(java.util.Collections.singletonList(new Object[]{"UAH", BigDecimal.valueOf(1000)}));
+
+            when(exchangeRateService.getRate(any(), eq("UAH"))).thenReturn(BigDecimal.ONE);
 
             TransactionStatisticsResponse result = transactionService.getTransactionStatistics(userId, null, null, null);
 
             assertNotNull(result);
-            assertEquals(BigDecimal.valueOf(1500), result.balance());
-            assertEquals(BigDecimal.valueOf(200), result.totalExpenses());
+
+            assertEquals(BigDecimal.valueOf(200).setScale(2), result.totalExpenses());
+
+            assertEquals(BigDecimal.valueOf(1000).setScale(2), result.balance());
             assertEquals(1, result.categories().size());
         }
 
         @Test
         void getAllTransactions_WithPaginationAndFilters_Success() {
             int pageNumber = 1;
+
             int pageSize = 5;
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
             TransactionType filterType = TransactionType.WITHDRAW;
             Long filterCategoryId = 2L;
+
             LocalDateTime startDate = LocalDateTime.now().minusDays(7);
             LocalDateTime endDate = LocalDateTime.now();
 
             Page<Transaction> mockPage = new PageImpl<>(List.of(testTransaction), pageable, 1);
-            TransactionResponse mockResponse = new TransactionResponse(100L, null, 10L, null, null, "Test", BigDecimal.valueOf(100), null, TransactionType.WITHDRAW, LocalDateTime.now());
+
+            TransactionResponse mockResponse = new TransactionResponse(100L, null, 10L, null, null, "Test", BigDecimal.valueOf(100), null, TransactionType.WITHDRAW, "UAH", LocalDateTime.now());
 
             when(transactionRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(mockPage);
             when(transactionMapper.toResponse(testTransaction)).thenReturn(mockResponse);
 
             Page<TransactionResponse> result = transactionService.getAllTransactions(
-                    pageable, filterType, userId, filterCategoryId, startDate, endDate
+                    pageable, filterType, userId, filterCategoryId, startDate, endDate, null
             );
 
             assertNotNull(result);
@@ -174,6 +197,7 @@ class TransactionServiceTest {
         @Test
         void createTransfer_Success() {
             TransferRequest request = new TransferRequest(10L, 20L, "Transfer", BigDecimal.valueOf(300), null);
+
             Transaction mappedTx = new Transaction();
             mappedTx.setAmount(BigDecimal.valueOf(300));
             TransferResponse mockResponse = new TransferResponse(transactionId, 10L, 20L, null, "Transfer", BigDecimal.valueOf(300), null, TransactionType.TRANSFER, LocalDateTime.now());
@@ -194,6 +218,7 @@ class TransactionServiceTest {
         @Test
         void createTransaction_WithCategoryAndMerchant_Success() {
             TransactionRequest request = new TransactionRequest(10L, 2L, 3L, "Buy", TransactionType.WITHDRAW, BigDecimal.valueOf(200), null);
+
             Transaction mappedTx = new Transaction();
             mappedTx.setAmount(BigDecimal.valueOf(200));
             mappedTx.setType(TransactionType.WITHDRAW);
@@ -215,6 +240,7 @@ class TransactionServiceTest {
         @Test
         void createTransfer_ThrowsInsufficientFundsException() {
             TransferRequest request = new TransferRequest(10L, 20L, "Transfer", BigDecimal.valueOf(1500), null);
+
             Transaction mappedTx = new Transaction();
             mappedTx.setAmount(BigDecimal.valueOf(1500));
 
@@ -233,6 +259,7 @@ class TransactionServiceTest {
         void getTransactionById_Success() {
             when(transactionRepository.findByIdAndAccount_UserId(transactionId, userId))
                     .thenReturn(Optional.of(testTransaction));
+
             when(transactionMapper.toResponse(testTransaction))
                     .thenReturn(mock(TransactionResponse.class));
 
@@ -247,6 +274,7 @@ class TransactionServiceTest {
         @Test
         void createTransaction_Withdraw_Success() {
             TransactionRequest request = new TransactionRequest(10L, null, null, "Buy", TransactionType.WITHDRAW, BigDecimal.valueOf(200), null);
+
             Transaction mappedTx = new Transaction();
             mappedTx.setAmount(BigDecimal.valueOf(200));
             mappedTx.setType(TransactionType.WITHDRAW);
@@ -259,11 +287,13 @@ class TransactionServiceTest {
 
             assertEquals(BigDecimal.valueOf(800), sourceAccount.getBalance());
             verify(transactionRepository, times(1)).save(mappedTx);
+
         }
 
         @Test
         void createTransaction_Withdraw_ThrowsInsufficientFundsException() {
             TransactionRequest request = new TransactionRequest(10L, null, null, "Buy", TransactionType.WITHDRAW, BigDecimal.valueOf(2000), null);
+
             Transaction mappedTx = new Transaction();
             mappedTx.setAmount(BigDecimal.valueOf(2000));
             mappedTx.setType(TransactionType.WITHDRAW);
@@ -272,11 +302,13 @@ class TransactionServiceTest {
             when(transactionMapper.toEntity(request)).thenReturn(mappedTx);
 
             assertThrows(InsufficientFundsException.class, () -> transactionService.createTransaction(userId, request));
+
         }
 
         @Test
         void createTransaction_Deposit_Success() {
             TransactionRequest request = new TransactionRequest(10L, null, null, "Salary", TransactionType.DEPOSIT, BigDecimal.valueOf(500), null);
+
             Transaction mappedTx = new Transaction();
             mappedTx.setAmount(BigDecimal.valueOf(500));
             mappedTx.setType(TransactionType.DEPOSIT);
@@ -289,6 +321,7 @@ class TransactionServiceTest {
 
             assertEquals(BigDecimal.valueOf(1500), sourceAccount.getBalance());
             verify(transactionRepository, times(1)).save(mappedTx);
+
         }
     }
 
@@ -308,6 +341,7 @@ class TransactionServiceTest {
         @Test
         void deleteTransactionById_Deposit_Success() {
             testTransaction.setType(TransactionType.DEPOSIT);
+
             when(transactionRepository.findByIdAndAccount_UserId(transactionId, userId)).thenReturn(Optional.of(testTransaction));
 
             transactionService.deleteTransactionById(userId, transactionId);
@@ -319,16 +353,19 @@ class TransactionServiceTest {
         @Test
         void deleteTransactionById_Deposit_ThrowsInsufficientFundsException() {
             testTransaction.setType(TransactionType.DEPOSIT);
+
             testTransaction.setAmount(BigDecimal.valueOf(2000));
             when(transactionRepository.findByIdAndAccount_UserId(transactionId, userId)).thenReturn(Optional.of(testTransaction));
 
             assertThrows(InsufficientFundsException.class, () -> transactionService.deleteTransactionById(userId, transactionId));
             verify(transactionRepository, never()).delete(any(Transaction.class));
+
         }
 
         @Test
         void deleteTransactionById_Transfer_Success() {
             testTransaction.setType(TransactionType.TRANSFER);
+
             testTransaction.setTargetAccount(targetAccount);
             when(transactionRepository.findByIdAndAccount_UserId(transactionId, userId)).thenReturn(Optional.of(testTransaction));
 

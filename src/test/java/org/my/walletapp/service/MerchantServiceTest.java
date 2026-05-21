@@ -109,6 +109,7 @@ class MerchantServiceTest {
             MerchantResponse mockResponse = new MerchantResponse(merchantId, null, "Updated Silpo", null, true);
 
             when(merchantRepository.findByIdAndUserIdAndIsActiveTrue(merchantId, userId)).thenReturn(Optional.of(testMerchant));
+            when(merchantRepository.save(any(Merchant.class))).thenReturn(testMerchant);
             when(merchantMapper.toResponse(testMerchant)).thenReturn(mockResponse);
 
             MerchantResponse result = merchantService.updateMerchantById(userId, merchantId, request);
