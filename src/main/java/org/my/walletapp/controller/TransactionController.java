@@ -71,7 +71,7 @@ public class TransactionController {
                 .body(transactionService.createTransaction(user.getId(), request));
     }
 
-    @PostMapping("/transfer")
+    @PostMapping("/transfers")
     public ResponseEntity<TransferResponse> createTransfer(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody TransferRequest request) {
