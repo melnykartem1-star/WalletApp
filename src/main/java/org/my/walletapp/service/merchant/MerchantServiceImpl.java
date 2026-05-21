@@ -1,12 +1,14 @@
 package org.my.walletapp.service.merchant;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.my.walletapp.dto.merchant.MerchantRequest;
 import org.my.walletapp.dto.merchant.MerchantResponse;
+import org.my.walletapp.entity.Category;
 import org.my.walletapp.entity.Merchant;
-import org.my.walletapp.entity.User;
 import org.my.walletapp.exception.ResourceNotFoundException;
 import org.my.walletapp.mapper.MerchantMapper;
+import org.my.walletapp.repository.CategoryRepository;
 import org.my.walletapp.repository.MerchantRepository;
 import org.my.walletapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class MerchantServiceImpl implements MerchantService {
     private final MerchantRepository merchantRepository;
     private final MerchantMapper merchantMapper;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -36,8 +39,13 @@ public class MerchantServiceImpl implements MerchantService {
     public MerchantResponse createMerchant(Long userId, MerchantRequest request) {
         Merchant merchant = merchantMapper.toEntity(request);
 
-        User userProxy = userRepository.getReferenceById(userId);
-        merchant.setUser(userProxy);
+        merchant.setUser(userRepository.getReferenceById(userId));
+
+        if (request.categoryId() != null) {
+            Category category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Категорію не знайдено"));
+            merchant.setCategory(category);
+        }
 
         Merchant savedMerchant = merchantRepository.save(merchant);
         return merchantMapper.toResponse(savedMerchant);
@@ -47,10 +55,20 @@ public class MerchantServiceImpl implements MerchantService {
     @Transactional
     public MerchantResponse updateMerchantById(Long userId, Long merchantId, MerchantRequest request) {
         Merchant merchant = merchantRepository.findByIdAndUserIdAndIsActiveTrue(merchantId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Merchant with id " + merchantId + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Продавця не знайдено"));
 
         merchantMapper.partialUpdate(request, merchant);
-        return merchantMapper.toResponse(merchant);
+
+        if (request.categoryId() != null) {
+            Category category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Категорію не знайдено"));
+            merchant.setCategory(category);
+        } else {
+            merchant.setCategory(null);
+        }
+
+        Merchant updatedMerchant = merchantRepository.save(merchant);
+        return merchantMapper.toResponse(updatedMerchant);
     }
 
     @Override
