@@ -19,7 +19,8 @@ public interface TransactionService {
             Long userId,
             Long categoryId,
             LocalDateTime startDate,
-            LocalDateTime endDate
+            LocalDateTime endDate,
+            String query
     );
 
     TransactionStatisticsResponse getTransactionStatistics(

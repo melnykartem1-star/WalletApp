@@ -49,19 +49,15 @@ public class TransactionServiceImpl implements TransactionService{
     @Override
     @Transactional(readOnly = true)
     public Page<TransactionResponse> getAllTransactions(
-            Pageable pageable,
-            TransactionType type,
-            Long userId,
-            Long categoryId,
-            LocalDateTime startDate,
-            LocalDateTime endDate
+            Pageable pageable, TransactionType type, Long userId, Long categoryId,
+            LocalDateTime startDate, LocalDateTime endDate, String query
     ) {
-
         Specification<Transaction> spec = Specification.where(TransactionSpecification.byUserId(userId))
                 .and(TransactionSpecification.byType(type))
                 .and(TransactionSpecification.byCategoryId(categoryId))
                 .and(TransactionSpecification.fromDate(startDate))
-                .and(TransactionSpecification.toDate(endDate));
+                .and(TransactionSpecification.toDate(endDate))
+                .and(TransactionSpecification.byTitle(query));
 
         return transactionRepository.findAll(spec, pageable)
                 .map(transactionMapper::toResponse);

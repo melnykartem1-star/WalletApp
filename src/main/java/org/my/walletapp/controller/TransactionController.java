@@ -36,10 +36,11 @@ public class TransactionController {
             @RequestParam(required = false) TransactionType type,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) String query
+    ) {
         return ResponseEntity.ok(transactionService.getAllTransactions(
-                pageable, type, user.getId(), categoryId, startDate, endDate
+                pageable, type, user.getId(), categoryId, startDate, endDate, query
         ));
     }
 

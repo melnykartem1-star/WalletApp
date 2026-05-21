@@ -38,6 +38,9 @@ public interface TransactionRepository extends JpaSpecificationExecutor<Transact
             @Param("endDate") LocalDateTime endDate
     );
 
+    @Query("SELECT t FROM Transaction t WHERE :query IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<Transaction> findAllByTitleContainingIgnoreCase(@Param("query") String query, Pageable pageable);
+
     Optional<Transaction> findByIdAndAccount_UserId(Long id, Long userId);
 
     @EntityGraph(attributePaths = {"category", "merchant", "account", "targetAccount"})
