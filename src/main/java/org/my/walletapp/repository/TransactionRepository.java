@@ -20,7 +20,7 @@ import java.util.Optional;
 public interface TransactionRepository extends JpaSpecificationExecutor<Transaction>, JpaRepository<Transaction, Long> {
 
     @Query("""
-        SELECT c.title AS categoryName, c.color AS color, SUM(t.amount) AS amount, c.type AS type
+        SELECT c.title AS categoryName, c.color AS color, SUM(t.amount) AS amount, t.type AS type
         FROM Transaction t
         LEFT JOIN t.category c
         JOIN t.account a
@@ -29,7 +29,7 @@ public interface TransactionRepository extends JpaSpecificationExecutor<Transact
           AND (:categoryId IS NULL OR c.id = :categoryId)
           AND (CAST(:startDate AS timestamp) IS NULL OR t.createdAt >= :startDate)
           AND (CAST(:endDate AS timestamp) IS NULL OR t.createdAt <= :endDate)
-        GROUP BY c.id, c.title, c.color, c.type
+        GROUP BY c.id, c.title, c.color, t.type
     """)
     List<TransactionStatisticProjection> getStatisticsByPeriod(
             @Param("categoryId") Long categoryId,

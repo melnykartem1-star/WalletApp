@@ -11,7 +11,6 @@ import org.my.walletapp.entity.Account;
 import org.my.walletapp.entity.Category;
 import org.my.walletapp.entity.Merchant;
 import org.my.walletapp.entity.Transaction;
-import org.my.walletapp.enums.CategoryType;
 import org.my.walletapp.enums.TransactionType;
 import org.my.walletapp.exception.InsufficientFundsException;
 import org.my.walletapp.exception.ResourceNotFoundException;
@@ -85,19 +84,19 @@ public class TransactionServiceImpl implements TransactionService{
 
         for (TransactionStatisticProjection proj : projections) {
 
-            if (proj.getType() == CategoryType.EXPENSE) {
+            if (proj.getType() == TransactionType.WITHDRAW) {
                 totalExpenses = totalExpenses.add(proj.getAmount());
-            }
 
-            else if (proj.getType() == CategoryType.INCOME) {
+
+                categoryStats.add(new CategoryStatResponse(
+                        proj.getCategoryName(),
+                        proj.getColor(),
+                        proj.getAmount().abs()
+                ));
+            }
+            else if (proj.getType() == TransactionType.DEPOSIT) {
                 totalIncome = totalIncome.add(proj.getAmount());
             }
-
-            categoryStats.add(new CategoryStatResponse(
-                    proj.getCategoryName(),
-                    proj.getColor(),
-                    proj.getAmount()
-            ));
         }
 
         BigDecimal totalBalance = accountRepository.findAllByUserIdAndIsActiveTrue(userId)

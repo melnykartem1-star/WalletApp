@@ -1,6 +1,6 @@
 package org.my.walletapp.util;
 
-import org.my.walletapp.enums.CategoryType;
+import org.my.walletapp.enums.TransactionType;
 
 import java.math.BigDecimal;
 
@@ -9,6 +9,6 @@ public interface TransactionStatisticProjection {
     String getCategoryName();
     String getColor();
     BigDecimal getAmount();
-    CategoryType getType();
+    TransactionType getType();
 
 }
