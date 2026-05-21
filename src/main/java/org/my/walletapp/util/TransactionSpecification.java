@@ -18,6 +18,13 @@ public class TransactionSpecification {
                 cb.equal(root.get("category").get("id"), categoryId);
     }
 
+    public static Specification<Transaction> byTitle(String query) {
+        return (root, criteriaQuery, cb) -> {
+            if (query == null || query.trim().isEmpty()) return cb.conjunction();
+            return cb.like(cb.lower(root.get("title")), "%" + query.toLowerCase() + "%");
+        };
+    }
+
     public static Specification<Transaction> fromDate(LocalDateTime startDate) {
         return (root, query, cb) -> startDate == null ?
                 cb.conjunction() :
