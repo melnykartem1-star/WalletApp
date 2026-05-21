@@ -50,6 +50,8 @@ public class AccountServiceImpl implements AccountService{
                 .orElseThrow(() -> new ResourceNotFoundException("Account with id " + accountId + " not found"));
 
         accountMapper.partialUpdate(request, account);
+        account.setDescription(request.description());
+
         return accountMapper.toResponse(account);
     }
 
