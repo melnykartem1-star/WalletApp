@@ -31,8 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -73,42 +74,72 @@ public class TransactionServiceImpl implements TransactionService{
             LocalDateTime startDate,
             LocalDateTime endDate
     ) {
-
         List<TransactionStatisticProjection> projections = transactionRepository.getStatisticsByPeriod(
                 categoryId, userId, startDate, endDate
         );
 
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalExpenses = BigDecimal.ZERO;
-        List<CategoryStatResponse> categoryStats = new ArrayList<>();
+
+        Map<String, BigDecimal> categoryAmounts = new HashMap<>();
+        Map<String, String> categoryColors = new HashMap<>();
 
         for (TransactionStatisticProjection proj : projections) {
+            if (proj == null || proj.getAmount() == null) continue;
+
+            System.out.println("DEBUG: Category: " + proj.getCategoryName() +
+                    ", Type: " + proj.getType() +
+                    ", Amount: " + proj.getAmount() +
+                    ", Currency: " + proj.getCurrency());
+
+            String currency = proj.getCurrency();
+            BigDecimal amount = proj.getAmount().abs();
+
+            BigDecimal rate = exchangeRateService.getRate(currency, "UAH");
+            BigDecimal amountInUah = amount.multiply(rate);
 
             if (proj.getType() == TransactionType.WITHDRAW) {
-                totalExpenses = totalExpenses.add(proj.getAmount());
+                totalExpenses = totalExpenses.add(amountInUah);
 
+                String categoryName = proj.getCategoryName() != null ? proj.getCategoryName() : "Without category";
+                String color = proj.getColor() != null ? proj.getColor() : "#CCCCCC";
 
-                categoryStats.add(new CategoryStatResponse(
-                        proj.getCategoryName(),
-                        proj.getColor(),
-                        proj.getAmount().abs()
-                ));
+                categoryAmounts.put(categoryName, categoryAmounts.getOrDefault(categoryName, BigDecimal.ZERO).add(amountInUah));
+                categoryColors.put(categoryName, color);
             }
             else if (proj.getType() == TransactionType.DEPOSIT) {
-                totalIncome = totalIncome.add(proj.getAmount());
+                totalIncome = totalIncome.add(amountInUah);
             }
         }
 
-        BigDecimal totalBalance = accountRepository.findAllByUserIdAndIsActiveTrue(userId)
-                .stream()
-                .map(Account::getBalance)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<CategoryStatResponse> categoryStats = categoryAmounts.entrySet().stream()
+                .map(entry -> new CategoryStatResponse(
+                        entry.getKey(),
+                        categoryColors.get(entry.getKey()),
+                        entry.getValue().setScale(2, RoundingMode.HALF_UP)
+                ))
+                .toList();
+
+        List<Object[]> stats = transactionRepository.getBalanceByCurrency(userId);
+        BigDecimal totalBalanceInUah = BigDecimal.ZERO;
+
+        if (stats != null) {
+            for (Object[] row : stats) {
+                if (row[0] == null || row[1] == null) continue;
+
+                String currency = (String) row[0];
+                BigDecimal balance = (BigDecimal) row[1];
+
+                BigDecimal rate = exchangeRateService.getRate(currency, "UAH");
+                totalBalanceInUah = totalBalanceInUah.add(balance.multiply(rate));
+            }
+        }
 
         return new TransactionStatisticsResponse(
                 categoryStats,
-                totalBalance,
-                totalIncome,
-                totalExpenses,
+                totalBalanceInUah.setScale(2, RoundingMode.HALF_UP),
+                totalIncome.setScale(2, RoundingMode.HALF_UP),
+                totalExpenses.setScale(2, RoundingMode.HALF_UP),
                 startDate,
                 endDate
         );

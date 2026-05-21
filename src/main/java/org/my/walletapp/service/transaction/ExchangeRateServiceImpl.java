@@ -11,8 +11,8 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
 
     private final Map<String, BigDecimal> ratesToUah = Map.of(
             "UAH", BigDecimal.ONE,
-            "USD", new BigDecimal("39.50"),
-            "EUR", new BigDecimal("42.80")
+            "USD", new BigDecimal("44.22"),
+            "EUR", new BigDecimal("51.30")
     );
 
     @Override

@@ -20,17 +20,21 @@ import java.util.Optional;
 public interface TransactionRepository extends JpaSpecificationExecutor<Transaction>, JpaRepository<Transaction, Long> {
 
     @Query("""
-        SELECT c.title AS categoryName, c.color AS color, SUM(t.amount) AS amount, t.type AS type
-        FROM Transaction t
-        LEFT JOIN t.category c
-        JOIN t.account a
-        WHERE a.user.id = :userId
-          AND t.type != org.my.walletapp.enums.TransactionType.TRANSFER 
-          AND (:categoryId IS NULL OR c.id = :categoryId)
-          AND (CAST(:startDate AS timestamp) IS NULL OR t.createdAt >= :startDate)
-          AND (CAST(:endDate AS timestamp) IS NULL OR t.createdAt <= :endDate)
-        GROUP BY c.id, c.title, c.color, t.type
-    """)
+    SELECT c.title AS categoryName, 
+           c.color AS color, 
+           SUM(t.amount) AS amount, 
+           t.type AS type, 
+           a.currency AS currency
+    FROM Transaction t
+    LEFT JOIN t.category c
+    JOIN t.account a
+    WHERE a.user.id = :userId
+      AND t.type != org.my.walletapp.enums.TransactionType.TRANSFER 
+      AND (:categoryId IS NULL OR c.id = :categoryId)
+      AND (CAST(:startDate AS timestamp) IS NULL OR t.createdAt >= :startDate)
+      AND (CAST(:endDate AS timestamp) IS NULL OR t.createdAt <= :endDate)
+    GROUP BY c.id, c.title, c.color, t.type, a.currency
+""")
     List<TransactionStatisticProjection> getStatisticsByPeriod(
             @Param("categoryId") Long categoryId,
             @Param("userId") Long userId,
@@ -38,8 +42,13 @@ public interface TransactionRepository extends JpaSpecificationExecutor<Transact
             @Param("endDate") LocalDateTime endDate
     );
 
-    @Query("SELECT t FROM Transaction t WHERE :query IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :query, '%'))")
-    Page<Transaction> findAllByTitleContainingIgnoreCase(@Param("query") String query, Pageable pageable);
+    @Query("""
+    SELECT a.currency, COALESCE(SUM(a.balance), 0)
+    FROM Account a
+    WHERE a.user.id = :userId AND a.isActive = true
+    GROUP BY a.currency
+""")
+    List<Object[]> getBalanceByCurrency(@Param("userId") Long userId);
 
     Optional<Transaction> findByIdAndAccount_UserId(Long id, Long userId);
 
