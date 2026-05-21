@@ -5,6 +5,12 @@ target/
 !**/src/test/**/target/
 .DS_Store
 
+### Front ###
+node_modules/
+dist/
+build/
+.env
+
 ### STS ###
 .apt_generated
 .classpath
