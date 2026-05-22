@@ -32,7 +32,7 @@ export default function Transactions() {
         setLoading(true);
         setError(null);
         try {
-            let url = `/transactions?page=${pageNumber}&size=15`;
+            let url = `/transactions?page=${pageNumber}&size=10`;
             if (filters.query) url += `&query=${encodeURIComponent(filters.query)}`;
             if (filters.type) url += `&type=${filters.type}`;
             if (filters.catId) url += `&categoryId=${filters.catId}`;

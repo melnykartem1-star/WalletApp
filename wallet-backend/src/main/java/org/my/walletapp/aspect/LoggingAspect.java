@@ -14,8 +14,6 @@ import java.util.Arrays;
 @Slf4j
 public class LoggingAspect {
 
-
-
     @Pointcut("(within(org.my.walletapp.controller..*) || within(org.my.walletapp.service..*)) " +
             "&& !within(org.my.walletapp.controller.AuthController) " +
             "&& !within(org.my.walletapp.service.auth..*) " +

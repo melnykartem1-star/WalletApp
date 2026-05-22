@@ -16,7 +16,7 @@ export default function Categories() {
     const fetchCategories = async () => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/categories');
+            const response = await axiosInstance.get('/categories?size=10');
             const data = response.data?.content || response.data || [];
             setCategories(data);
         } catch (error) {
